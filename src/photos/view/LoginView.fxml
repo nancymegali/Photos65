@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="photos.controller.LoginController"
+            prefWidth="400" prefHeight="250">
+    <children>
+        <VBox spacing="15" alignment="CENTER" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0">
+            <Label text="Welcome to Photos" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+            <Label text="Enter Username:" />
+            <TextField fx:id="usernameField" promptText="Username" prefWidth="200" />
+            <Button text="Login" onAction="#handleLogin" prefWidth="120" />
+            <Label fx:id="errorLabel" textFill="red" />
+        </VBox>
+    </children>
+</AnchorPane>
