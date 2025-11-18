@@ -10,53 +10,58 @@ import javafx.stage.Stage;
 
 import photos.Photos;
 import photos.model.Album;
+import photos.model.Photo;
 import photos.model.User;
 import photos.model.Store;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
- * Controller for the album management screen of the Photos application.
+ * Controller for the album management view in the Photos application.
  * <p>
- * This controller allows a logged-in user to:
+ * This screen allows a logged-in user to manage their personal collection
+ * of photo albums. Available functionality includes:
  * <ul>
- *     <li>View all albums</li>
- *     <li>Create new albums</li>
- *     <li>Delete existing albums</li>
- *     <li>Rename albums</li>
- *     <li>Open a selected album</li>
- *     <li>View album metadata (photo count, earliest/latest dates)</li>
- *     <li>Logout to the login screen</li>
+ *     <li>Viewing all albums</li>
+ *     <li>Creating new albums</li>
+ *     <li>Deleting albums</li>
+ *     <li>Renaming existing albums</li>
+ *     <li>Opening an album to view its photos</li>
+ *     <li>Viewing album metadata (photo count, earliest/latest dates)</li>
+ *     <li>Searching across all albums</li>
+ *     <li>Logging out</li>
  * </ul>
- * The controller reads user information from {@link Photos#currentUser}
- * and is associated with {@code AlbumsView.fxml}.
+ *
+ * This controller is bound to {@code AlbumsView.fxml} and works in
+ * conjunction with {@link Photos#currentUser}, which identifies the
+ * user currently logged in.
  * </p>
  *
  * @author Nancy Megali & Safa Gokdemir
  */
 public class AlbumsController {
 
-    /** ListView displaying all album names for the logged-in user. */
+    /** Displays the list of album names owned by the logged-in user. */
     @FXML private ListView<String> albumList;
 
-    /** Text field used to enter a new album name when creating albums. */
+    /** Text field for entering the name of a new album. */
     @FXML private TextField newAlbumField;
 
-    /** Displays total number of photos in the selected album. */
+    /** Label showing the number of photos in the selected album. */
     @FXML private Label countLabel;
 
-    /** Displays the earliest photo timestamp in the selected album. */
+    /** Label showing the earliest timestamp among photos in the selected album. */
     @FXML private Label startDateLabel;
 
-    /** Displays the latest photo timestamp in the selected album. */
+    /** Label showing the latest timestamp among photos in the selected album. */
     @FXML private Label endDateLabel;
 
-    /** The currently logged-in user, loaded from {@link Photos#currentUser}. */
+    /** The user currently logged in; set from {@link Photos#currentUser}. */
     private User user;
 
     /**
-     * Initializes the album screen after FXML loading.
-     * Loads all albums belonging to the logged-in user.
+     * Called after FXML loading. Initializes state by loading the user's albums.
      */
     @FXML
     public void initialize() {
@@ -65,16 +70,16 @@ public class AlbumsController {
     }
 
     /**
-     * Re-initializes the album list when navigating back from another view.
-     * Called by {@link photos.controller.PhotosController}.
+     * Refreshes the album list. Called when navigating back
+     * from the Photos view.
      */
     public void initializeList() {
         loadAlbums();
     }
 
     /**
-     * Loads all albums for the logged-in user into the ListView
-     * and attaches listeners to update album metadata when selection changes.
+     * Loads all of the user's albums into the ListView and installs
+     * a listener to update album metadata based on selection.
      */
     private void loadAlbums() {
         albumList.getItems().clear();
@@ -91,8 +96,9 @@ public class AlbumsController {
     }
 
     /**
-     * Updates the album information panel (photo count and date range)
-     * based on the currently selected album.
+     * Updates displayed album metadata (photo count and date range)
+     * for the currently selected album. Displays hyphens when no album
+     * is selected.
      */
     private void updateAlbumInfo() {
         String name = albumList.getSelectionModel().getSelectedItem();
@@ -109,20 +115,77 @@ public class AlbumsController {
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-        if (a.getEarliestDate() != null)
-            startDateLabel.setText(a.getEarliestDate().format(fmt));
-        else
-            startDateLabel.setText("-");
+        startDateLabel.setText(a.getEarliestDate() != null
+                ? a.getEarliestDate().format(fmt)
+                : "-");
 
-        if (a.getLatestDate() != null)
-            endDateLabel.setText(a.getLatestDate().format(fmt));
-        else
-            endDateLabel.setText("-");
+        endDateLabel.setText(a.getLatestDate() != null
+                ? a.getLatestDate().format(fmt)
+                : "-");
     }
 
     /**
-     * Creates a new album with the name entered in the text field.
-     * Validates input and prevents duplicate album names.
+     * Opens the search dialog, processes search criteria, and displays results.
+     * Shows an error if no photos match.
+     */
+    @FXML
+    private void handleSearch() {
+        try {
+            FXMLLoader loader =
+                new FXMLLoader(getClass().getResource("/photos/view/SearchDialog.fxml"));
+            DialogPane pane = loader.load();
+
+            SearchDialogController controller = loader.getController();
+
+            Dialog<List<Photo>> dialog = new Dialog<>();
+            dialog.setDialogPane(pane);
+
+            var result = dialog.showAndWait();
+            if (result.isEmpty()) return;
+
+            List<Photo> photos = controller.processSearch();
+
+            if (photos.isEmpty()) {
+                error("No photos match the search criteria.");
+                return;
+            }
+
+            showSearchResults(photos);
+
+        } catch (Exception e) {
+            error("Failed to open search dialog.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Displays the given list of photos in a dedicated search results window.
+     *
+     * @param photos list of photos returned by the search system
+     */
+    private void showSearchResults(List<Photo> photos) {
+        try {
+            FXMLLoader loader =
+                new FXMLLoader(getClass().getResource("/photos/view/SearchResultsView.fxml"));
+            Scene scene = new Scene(loader.load());
+
+            SearchResultsController controller = loader.getController();
+            controller.setResults(photos);
+
+            Stage stage = new Stage();
+            stage.setTitle("Search Results");
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (Exception e) {
+            error("Could not display search results.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Creates a new album using the text in the input field.
+     * Validates uniqueness and prevents empty names.
      */
     @FXML
     private void handleCreateAlbum() {
@@ -144,8 +207,7 @@ public class AlbumsController {
     }
 
     /**
-     * Deletes the selected album from the user's collection.
-     * Displays an error if no album is selected.
+     * Deletes the currently selected album. Displays an error if none is selected.
      */
     @FXML
     private void handleDeleteAlbum() {
@@ -162,8 +224,8 @@ public class AlbumsController {
     }
 
     /**
-     * Renames the selected album using a dialog prompt.
-     * Validates the new name and prevents duplicates.
+     * Prompts the user for a new album name and applies the rename
+     * if valid and not conflicting with another album.
      */
     @FXML
     private void handleRenameAlbum() {
@@ -192,9 +254,9 @@ public class AlbumsController {
     }
 
     /**
-     * Opens the selected album and loads the Photos view.
+     * Opens the selected album in the Photos view.
      *
-     * @param event the button click event
+     * @param event the event triggered by clicking the Open button
      */
     @FXML
     private void handleOpenAlbum(ActionEvent event) {
@@ -227,9 +289,9 @@ public class AlbumsController {
     }
 
     /**
-     * Logs the user out, saves data, and returns to the login screen.
+     * Logs out the current user, saves all data, and returns to the login screen.
      *
-     * @param event the logout action
+     * @param event logout button event
      */
     @FXML
     private void handleLogout(ActionEvent event) {
@@ -253,9 +315,9 @@ public class AlbumsController {
     }
 
     /**
-     * Shows an error dialog with the specified message.
+     * Shows an error message in a modal dialog.
      *
-     * @param msg the error message to display
+     * @param msg text to display
      */
     private void error(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

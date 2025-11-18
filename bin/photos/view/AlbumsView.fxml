@@ -26,6 +26,9 @@
                 <Button text="Delete" onAction="#handleDeleteAlbum" />
                 <Button text="Rename" onAction="#handleRenameAlbum" />
             </HBox>
+            
+            <Button text="Search Photos" onAction="#handleSearch" prefWidth="220" />
+
         </VBox>
     </left>
 
