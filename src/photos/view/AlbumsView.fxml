@@ -24,6 +24,7 @@
             <HBox spacing="10">
                 <Button text="Open" onAction="#handleOpenAlbum" />
                 <Button text="Delete" onAction="#handleDeleteAlbum" />
+                <Button text="Rename" onAction="#handleRenameAlbum" />
             </HBox>
         </VBox>
     </left>
