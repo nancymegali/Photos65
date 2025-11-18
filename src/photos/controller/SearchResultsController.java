@@ -2,11 +2,15 @@ package photos.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import java.io.File;
 import javafx.stage.Stage;
 import photos.Photos;
 import photos.model.Album;
 import photos.model.Photo;
 import photos.model.Store;
+
 
 import java.util.List;
 
@@ -45,6 +49,7 @@ public class SearchResultsController {
     public void setResults(List<Photo> photos) {
         this.results = photos;
         resultsList.getItems().setAll(photos);
+        configureResultsCellFactory();
     }
 
     /**
@@ -67,18 +72,72 @@ public class SearchResultsController {
         var name = dialog.showAndWait();
         if (name.isEmpty()) return;
 
-        Album a = new Album(name.get());
+        String albumName = name.get().trim();
+        if (albumName.isEmpty()) return;
 
+        // Check for duplicate album name
+        if (Photos.currentUser.getAlbum(albumName) != null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "An album with that name already exists. Please choose another name.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Create album via User API so everything stays consistent
+        if (!Photos.currentUser.addAlbum(albumName)) {
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "Failed to create album. Name might already exist.");
+            alert.showAndWait();
+            return;
+        }
+
+        Album a = Photos.currentUser.getAlbum(albumName);
         for (Photo p : results) {
             a.addPhoto(p);
         }
 
-        Photos.currentUser.getAlbums().add(a);
         Store.save(Photos.store);
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION,
                 "Album created successfully.");
         alert.showAndWait();
+    }
+
+    /**
+    * Configures the ListView to display thumbnails and captions for results.
+    */
+    private void configureResultsCellFactory() {
+        resultsList.setCellFactory(listView -> new ListCell<Photo>() {
+            private final ImageView thumb = new ImageView();
+
+            {
+                thumb.setFitWidth(80);
+                thumb.setFitHeight(60);
+                thumb.setPreserveRatio(true);
+            }
+
+            @Override
+            protected void updateItem(Photo item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+
+                File f = new File(item.getFilePath());
+                if (f.exists()) {
+                    thumb.setImage(new Image(f.toURI().toString(), 80, 60, true, true));
+                    setGraphic(thumb);
+                } else {
+                    setGraphic(null);
+                }
+
+                String caption = item.getCaption();
+                setText(caption == null || caption.isEmpty() ? f.getName() : caption);
+            }
+        });
     }
 
     /**

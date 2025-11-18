@@ -80,14 +80,15 @@ public class SearchDialogController {
     public List<Photo> processSearch() {
         List<Photo> output = new ArrayList<>();
 
-        // Date range search
+        // If date range is fully specified, do ONLY date search
         LocalDate s = startDate.getValue();
         LocalDate e = endDate.getValue();
         if (s != null && e != null) {
             output.addAll(SearchUtils.searchByDateRange(s, e));
+            return output;
         }
 
-        // Tag search
+        // Otherwise, do tag search
         String n1 = tagName1.getText().trim();
         String v1 = tagValue1.getText().trim();
 
@@ -95,17 +96,13 @@ public class SearchDialogController {
         String v2 = tagValue2.getText().trim();
 
         if (!n1.isEmpty() && !v1.isEmpty()) {
-
-            // Two tags provided
             if (!n2.isEmpty() && !v2.isEmpty()) {
-
+                // Two tags with AND/OR
                 if (andRadio.isSelected()) {
                     output.addAll(SearchUtils.searchTagAnd(n1, v1, n2, v2));
-
                 } else if (orRadio.isSelected()) {
                     output.addAll(SearchUtils.searchTagOr(n1, v1, n2, v2));
                 }
-
             } else {
                 // Only one tag
                 output.addAll(SearchUtils.searchTagSingle(n1, v1));

@@ -31,6 +31,8 @@ public class Photo implements Serializable {
     /** Serialization identifier for version compatibility. */
     private static final long serialVersionUID = 1L;
 
+    private static final Set<String> SINGLE_VALUE_TAGS = Set.of("location");
+
     /** The absolute or relative path to the photo file on disk. */
     private String filePath;
 
@@ -119,7 +121,14 @@ public class Photo implements Serializable {
      * @return true if the tag was added, false if it already exists
      */
     public boolean addTag(String name, String value) {
-        return tags.add(new Tag(name, value));
+        Tag newTag = new Tag(name, value);
+
+        // If this tag type is single-valued, remove any existing tags of same name
+        if (SINGLE_VALUE_TAGS.contains(newTag.getName())) {
+            tags.removeIf(t -> t.getName().equals(newTag.getName()));
+        }
+
+        return tags.add(newTag);
     }
 
     /**

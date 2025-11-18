@@ -51,6 +51,8 @@ public class PhotosController {
     /** ListView displaying all tags belonging to the selected photo. */
     @FXML private ListView<Tag> tagList;
 
+    @FXML private Label photoDateLabel;
+
     /** Displays the count of photos in the album. */
     @FXML private Label countLabel;
 
@@ -75,6 +77,10 @@ public class PhotosController {
     public void setAlbum(Album album) {
         this.album = album;
         albumNameLabel.setText(album.getName());
+
+        // Ensure thumbnails are used
+        configurePhotoListCellFactory();
+
         refreshPhotoList();
     }
 
@@ -104,6 +110,9 @@ public class PhotosController {
         photoView.setImage(null);
         captionField.setText("");
         tagList.getItems().clear();
+        if (photoDateLabel != null) {
+            photoDateLabel.setText("-");
+        }
     }
 
     /**
@@ -118,6 +127,44 @@ public class PhotosController {
 
         startDateLabel.setText(s == null ? "-" : s.toString().replace('T',' '));
         endDateLabel.setText(e == null ? "-" : e.toString().replace('T',' '));
+    }
+
+    /**
+    * Configures the ListView to display photo thumbnails plus captions.
+    */
+    private void configurePhotoListCellFactory() {
+        photoList.setCellFactory(listView -> new ListCell<Photo>() {
+            private final ImageView thumb = new ImageView();
+
+            {
+                thumb.setFitWidth(80);
+                thumb.setFitHeight(60);
+                thumb.setPreserveRatio(true);
+            }
+
+            @Override
+            protected void updateItem(Photo item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+
+                File f = new File(item.getFilePath());
+                if (f.exists()) {
+                    // load a scaled image for thumbnail
+                    thumb.setImage(new Image(f.toURI().toString(), 80, 60, true, true));
+                    setGraphic(thumb);
+                } else {
+                    setGraphic(null);
+                }
+
+                String caption = item.getCaption();
+                setText(caption == null || caption.isEmpty() ? f.getName() : caption);
+            }
+        });
     }
 
     /**
@@ -153,6 +200,12 @@ public class PhotosController {
 
         captionField.setText(p.getCaption());
         tagList.getItems().setAll(p.getTags());
+
+        if (p.getDateTime() != null) {
+            photoDateLabel.setText(p.getDateTime().toString().replace('T', ' '));
+        } else {
+            photoDateLabel.setText("-");
+        }
     }
 
     /**

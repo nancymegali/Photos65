@@ -97,6 +97,7 @@ public class Store implements Serializable {
      */
     public static Store load() {
         File f = new File(STORE_FILE);
+
         if (!f.exists()) {
             return new Store();
         }
@@ -104,10 +105,11 @@ public class Store implements Serializable {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f))) {
             return (Store) ois.readObject();
         } catch (Exception e) {
-            System.out.println("Failed to load store. Creating new.");
+            // Do NOT print to console; do NOT show UI dialog here
             return new Store();
         }
     }
+
 
     /**
      * Saves the current Store object to disk using serialization.
@@ -125,8 +127,8 @@ public class Store implements Serializable {
                 oos.writeObject(store);
             }
         } catch (Exception e) {
-            System.out.println("ERROR saving store:");
-            e.printStackTrace();
+            // System.out.println("ERROR saving store:");
+            // e.printStackTrace();
         }
     }
 }

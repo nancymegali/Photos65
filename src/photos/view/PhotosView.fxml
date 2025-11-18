@@ -52,6 +52,9 @@
                 <Label text="Caption:"/>
                 <TextField fx:id="captionField" promptText="Enter caption..."/>
                 <Button text="Save Caption" onAction="#handleSaveCaption"/>
+
+                <Label text="Date Taken:"/>
+                <Label fx:id="photoDateLabel" text="-"/>
             </VBox>
 
             <Separator/>
