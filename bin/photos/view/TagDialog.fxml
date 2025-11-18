@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<DialogPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="photos.controller.TagDialogController">
+
+    <content>
+        <VBox spacing="10">
+            <TextField fx:id="nameField" promptText="Tag Name (person, location...)" />
+            <TextField fx:id="valueField" promptText="Tag Value" />
+        </VBox>
+    </content>
+
+    <buttonTypes>
+        <ButtonType fx:id="okButton" text="OK" buttonData="OK_DONE"/>
+        <ButtonType fx:id="cancelButton" text="Cancel" buttonData="CANCEL_CLOSE"/>
+    </buttonTypes>
+
+</DialogPane>

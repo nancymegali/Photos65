@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<DialogPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="photos.controller.SearchDialogController">
+
+    <content>
+        <VBox spacing="10" style="-fx-padding: 10;">
+            
+            <Label text="Search by Date Range:" style="-fx-font-weight: bold;" />
+            <HBox spacing="10">
+                <DatePicker fx:id="startDate" promptText="Start" />
+                <DatePicker fx:id="endDate" promptText="End" />
+            </HBox>
+
+            <Separator />
+
+            <Label text="Search by Tag:" style="-fx-font-weight: bold;" />
+            <TextField fx:id="tagName1" promptText="Tag name (e.g. person)" />
+            <TextField fx:id="tagValue1" promptText="Tag value (e.g. sam)" />
+
+            <Label text="Second Tag (Optional):" />
+            <TextField fx:id="tagName2" promptText="Tag name" />
+            <TextField fx:id="tagValue2" promptText="Tag value" />
+
+            <HBox spacing="10">
+                <RadioButton fx:id="andRadio" text="AND" toggleGroup="$group" />
+                <RadioButton fx:id="orRadio" text="OR" toggleGroup="$group" />
+            </HBox>
+
+        </VBox>
+    </content>
+
+    <buttonTypes>
+        <ButtonType text="Search" buttonData="OK_DONE" />
+        <ButtonType text="Cancel" buttonData="CANCEL_CLOSE" />
+    </buttonTypes>
+
+</DialogPane>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.effect.DropShadow?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="photos.controller.PhotosController"
+            prefWidth="1000"
+            prefHeight="600">
+
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 10;">
+            <Label text="Album:" style="-fx-font-size: 20px;" />
+            <Label fx:id="albumNameLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+            <Button text="Back to Albums" onAction="#handleBack" />
+        </HBox>
+    </top>
+
+    <left>
+        <ScrollPane fitToWidth="true" fitToHeight="true" prefWidth="400">
+            <TilePane fx:id="thumbnailPane"
+                      hgap="10" vgap="10"
+                      padding="10"
+                      prefWidth="400"
+                      prefTileWidth="120"
+                      alignment="TOP_LEFT" />
+        </ScrollPane>
+    </left>
+
+    <center>
+        <VBox spacing="15" alignment="TOP_CENTER" style="-fx-padding: 20;">
+
+            <ImageView fx:id="previewImage"
+                       fitWidth="400" fitHeight="300"
+                       preserveRatio="true">
+                <effect>
+                    <DropShadow radius="10" />
+                </effect>
+            </ImageView>
+
+            <Label fx:id="captionLabel" style="-fx-font-size: 16px;" />
+            <Label fx:id="dateLabel" style="-fx-font-size: 14px;" />
+            <Label text="Tags:" style="-fx-font-weight: bold;" />
+            <ListView fx:id="tagList" prefHeight="120" prefWidth="250" />
+
+            <HBox spacing="10">
+                <Button text="Add Tag" onAction="#handleAddTag" />
+                <Button text="Delete Tag" onAction="#handleDeleteTag" />
+            </HBox>
+
+            <HBox spacing="10">
+                <Button text="Prev" onAction="#handlePrev" />
+                <Button text="Next" onAction="#handleNext" />
+            </HBox>
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10;">
+            <Button text="Add Photo" onAction="#handleAddPhoto" />
+            <Button text="Remove Photo" onAction="#handleRemovePhoto" />
+            <Button text="Caption Photo" onAction="#handleCaption" />
+            <Button text="Copy Photo" onAction="#handleCopyPhoto" />
+            <Button text="Move Photo" onAction="#handleMovePhoto" />
+            <Button text="Search" onAction="#handleSearch" />
+        </HBox>
+    </bottom>
+
+</BorderPane>

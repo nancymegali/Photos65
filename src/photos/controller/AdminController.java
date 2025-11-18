@@ -26,7 +26,6 @@ public class AdminController {
         refreshList();
     }
 
-    /** Loads all users into the ListView */
     private void refreshList() {
         userList.getItems().clear();
 
@@ -35,9 +34,7 @@ public class AdminController {
         }
     }
 
-    // ---------------------------
-    // CREATE USER
-    // ---------------------------
+ 
     @FXML
     private void handleCreateUser(ActionEvent event) {
         String username = newUserField.getText().trim().toLowerCase();
@@ -62,9 +59,7 @@ public class AdminController {
         refreshList();
     }
 
-    // ---------------------------
-    // DELETE USER
-    // ---------------------------
+
     @FXML
     private void handleDeleteUser(ActionEvent event) {
         String selected = userList.getSelectionModel().getSelectedItem();
@@ -83,17 +78,13 @@ public class AdminController {
         refreshList();
     }
 
-    // ---------------------------
-    // REFRESH
-    // ---------------------------
+  
     @FXML
     private void handleRefresh(ActionEvent event) {
         refreshList();
     }
 
-    // ---------------------------
-    // LOGOUT
-    // ---------------------------
+    
     @FXML
     private void handleLogout(ActionEvent event) {
         try {
@@ -112,9 +103,6 @@ public class AdminController {
         }
     }
 
-    // ---------------------------
-    // UTILITY: SHOW ERROR
-    // ---------------------------
     private void showError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText(null);

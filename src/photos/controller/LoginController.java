@@ -16,9 +16,7 @@ public class LoginController {
     @FXML
     private TextField usernameField;
 
-    /**
-     * Handles login when the user clicks the Login button.
-     */
+
     @FXML
     private void handleLogin(ActionEvent event) {
         String username = usernameField.getText().trim().toLowerCase();
@@ -28,24 +26,18 @@ public class LoginController {
             return;
         }
 
-        // ----------------------
-        // ADMIN LOGIN
-        // ----------------------
         if (username.equals("admin")) {
             loadAdminView(event);
             return;
         }
 
-        // ----------------------
-        // STOCK USER LOGIN
-        // ----------------------
+  
         if (username.equals("stock")) {
             User stock = Photos.store.getUser("stock");
             if (stock == null) {
                 stock = Photos.store.createUser("stock");
                 stock.addAlbum("stock");
 
-                // load your stock photos from /data
                 PhotoLoader.loadStockPhotos(stock);
             }
 
@@ -54,13 +46,9 @@ public class LoginController {
             return;
         }
 
-        // ----------------------
-        // NORMAL USER LOGIN
-        // ----------------------
         User u = Photos.store.getUser(username);
 
         if (u == null) {
-            // Create user on first login (this is allowed per assignment)
             u = Photos.store.createUser(username);
         }
 
@@ -68,9 +56,6 @@ public class LoginController {
         loadAlbumsView(event);
     }
 
-    // ----------------------
-    //     HELPER METHODS
-    // ----------------------
 
     private void loadAdminView(ActionEvent event) {
         try {
@@ -101,7 +86,6 @@ public class LoginController {
     }
 
     private void showError(String message) {
-        // You will replace this with a GUI dialog later
         System.out.println("ERROR: " + message);
     }
 }

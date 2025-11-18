@@ -32,15 +32,12 @@ public class AlbumsController {
         user = Photos.currentUser;
         refreshList();
 
-        // When user clicks an album, update info panel
         albumList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             updateAlbumInfo();
         });
     }
 
-    // -------------------------
-    // REFRESH LIST
-    // -------------------------
+
     @FXML
     private void handleRefresh(ActionEvent event) {
         refreshList();
@@ -56,9 +53,7 @@ public class AlbumsController {
         updateAlbumInfo();
     }
 
-    // -------------------------
-    // CREATE ALBUM
-    // -------------------------
+
     @FXML
     private void handleCreateAlbum(ActionEvent event) {
         String name = newAlbumField.getText().trim();
@@ -77,9 +72,6 @@ public class AlbumsController {
         refreshList();
     }
 
-    // -------------------------
-    // DELETE ALBUM
-    // -------------------------
     @FXML
     private void handleDeleteAlbum(ActionEvent event) {
         String name = albumList.getSelectionModel().getSelectedItem();
@@ -93,9 +85,6 @@ public class AlbumsController {
         refreshList();
     }
 
-    // -------------------------
-    // RENAME ALBUM
-    // -------------------------
     @FXML
     private void handleRenameAlbum(ActionEvent event) {
         String oldName = albumList.getSelectionModel().getSelectedItem();
@@ -118,9 +107,6 @@ public class AlbumsController {
         refreshList();
     }
 
-    // -------------------------
-    // UPDATE ALBUM INFO PANEL
-    // -------------------------
     private void updateAlbumInfo() {
         String name = albumList.getSelectionModel().getSelectedItem();
         if (name == null) {
@@ -147,9 +133,7 @@ public class AlbumsController {
             endDateLabel.setText("-");
     }
 
-    // -------------------------
-    // OPEN ALBUM
-    // -------------------------
+
     @FXML
     private void handleOpenAlbum(ActionEvent event) {
         String name = albumList.getSelectionModel().getSelectedItem();
@@ -159,7 +143,6 @@ public class AlbumsController {
             return;
         }
 
-        // Save selected album to global variable (for next screen)
         Session.selectedAlbum = user.getAlbum(name);
 
         try {
@@ -177,9 +160,6 @@ public class AlbumsController {
         }
     }
 
-    // -------------------------
-    // LOGOUT
-    // -------------------------
     @FXML
     private void handleLogout(ActionEvent event) {
         try {
@@ -196,9 +176,6 @@ public class AlbumsController {
         }
     }
 
-    // -------------------------
-    // ERROR DIALOG
-    // -------------------------
     private void showError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText(null);

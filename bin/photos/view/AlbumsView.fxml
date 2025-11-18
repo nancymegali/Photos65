@@ -8,13 +8,11 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="photos.controller.AlbumsController">
 
-    <!-- TOP BAR -->
     <top>
         <Label text="Your Albums"
                style="-fx-font-size: 22px; -fx-padding: 15;" />
     </top>
 
-    <!-- LEFT: ALBUM LIST -->
     <left>
         <VBox spacing="10" style="-fx-padding: 20;">
             <Label text="Albums:" style="-fx-font-size: 16px;" />
@@ -35,11 +33,9 @@
         </VBox>
     </left>
 
-    <!-- RIGHT: CREATE + ALBUM DETAILS -->
     <right>
         <VBox spacing="20" style="-fx-padding: 20;">
 
-            <!-- CREATE ALBUM -->
             <VBox spacing="10">
                 <Label text="Create New Album" style="-fx-font-size: 16px;" />
                 <TextField fx:id="newAlbumField" 
@@ -51,7 +47,6 @@
 
             <Separator />
 
-            <!-- ALBUM INFO -->
             <VBox spacing="10">
                 <Label text="Album Info" style="-fx-font-size: 16px;" />
 
@@ -68,7 +63,6 @@
         </VBox>
     </right>
 
-    <!-- BOTTOM: LOGOUT -->
     <bottom>
         <HBox alignment="CENTER_RIGHT" style="-fx-padding: 10;">
             <Button text="Logout" onAction="#handleLogout" />
