@@ -1,56 +1,49 @@
 package photos.model;
 
 import java.io.Serializable;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
 
 public class User implements Serializable {
-    private final String username;
-    private final Map<String, Album> albums; 
+    private static final long serialVersionUID = 1L;
+
+    private String username;
+    private List<Album> albums;
 
     public User(String username) {
-        this.username = username.trim().toLowerCase();
-        this.albums = new LinkedHashMap<>();
+        this.username = username;
+        this.albums = new ArrayList<>();
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public Collection<Album> getAlbums() {
-        return Collections.unmodifiableCollection(albums.values());
-    }
+    public String getUsername() { return username; }
+    public List<Album> getAlbums() { return albums; }
 
     public Album getAlbum(String name) {
-        return albums.get(name.trim().toLowerCase());
+        for (Album a : albums) {
+            if (a.getName().equalsIgnoreCase(name))
+                return a;
+        }
+        return null;
     }
 
-    public boolean createAlbum(String name) {
-        String key = name.trim().toLowerCase();
-        if (albums.containsKey(key)) return false;
-        albums.put(key, new Album(name));
+    public boolean addAlbum(String name) {
+        if (getAlbum(name) != null) return false;
+        albums.add(new Album(name));
         return true;
     }
 
     public boolean deleteAlbum(String name) {
-        return albums.remove(name.trim().toLowerCase()) != null;
-    }
-
-    public boolean renameAlbum(String oldName, String newName) {
-        String oldKey = oldName.trim().toLowerCase();
-        if (!albums.containsKey(oldKey)) return false;
-        Album a = albums.remove(oldKey);
-        a.rename(newName);
-        albums.put(newName.trim().toLowerCase(), a);
+        Album a = getAlbum(name);
+        if (a == null) return false;
+        albums.remove(a);
         return true;
     }
 
-    public int getAlbumCount() {
-        return albums.size();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("User[%s, %d albums]", username, albums.size());
+    public boolean renameAlbum(String oldName, String newName) {
+        if (getAlbum(newName) != null) return false;
+        Album a = getAlbum(oldName);
+        if (a == null) return false;
+        a.setName(newName);
+        return true;
     }
 }

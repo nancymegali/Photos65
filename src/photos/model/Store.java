@@ -1,52 +1,36 @@
 package photos.model;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
+public class Store implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-public class Store {
-    private final Path storeDir; 
+    private Map<String, User> users;
 
-    public Store(Path storeDir) {
-        this.storeDir = storeDir;
+    public Store() {
+        users = new HashMap<>();
     }
 
-    
-    public Map<String, User> loadAllUsers() throws IOException, ClassNotFoundException {
-        Map<String, User> map = new LinkedHashMap<>();
-
-        if (!Files.exists(storeDir)) {
-            return map;
-        }
-
-        try (DirectoryStream<Path> ds = Files.newDirectoryStream(storeDir, "*.ser")) {
-            for (Path p : ds) {
-                try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(p))) {
-                    User u = (User) ois.readObject();
-                    map.put(u.getUsername(), u);
-                }
-            }
-        }
-        return map;
+    public Collection<User> getAllUsers() {
+        return users.values();
     }
 
-    
-    public void saveUser(User user) throws IOException {
-        Files.createDirectories(storeDir);
-        Path file = storeDir.resolve(user.getUsername() + ".ser");
-        try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(file))) {
-            oos.writeObject(user);
-        }
+    public User getUser(String username) {
+        return users.get(username.toLowerCase());
     }
 
-    
-    public boolean deleteUser(String username) throws IOException {
-        Path file = storeDir.resolve(username.toLowerCase() + ".ser");
-        if (Files.exists(file)) {
-            Files.delete(file);
-            return true;
-        }
-        return false;
+    public User createUser(String username) {
+        username = username.toLowerCase();
+        if (users.containsKey(username)) return null;
+        User u = new User(username);
+        users.put(username, u);
+        return u;
+    }
+
+    public boolean deleteUser(String username) {
+        return users.remove(username.toLowerCase()) != null;
     }
 }

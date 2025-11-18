@@ -1,37 +1,208 @@
 package photos.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
+import javafx.scene.Node;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
+import javafx.stage.Stage;
+
+import photos.Photos;
+import photos.model.Album;
+import photos.model.User;
+
+import java.time.format.DateTimeFormatter;
 
 public class AlbumsController {
-    private photos.model.User user;
-    private photos.model.Store store;
-
-    public void setUser(photos.model.User user) {
-        this.user = user;
-    }
-
-    public void setStore(photos.model.Store store) {
-        this.store = store;
-    }
 
     @FXML
-    private void handleLogout(javafx.event.ActionEvent event) {
+    private ListView<String> albumList;
+
+    @FXML
+    private TextField newAlbumField;
+
+    @FXML
+    private Label countLabel, startDateLabel, endDateLabel;
+
+    private User user;
+
+    @FXML
+    public void initialize() {
+        user = Photos.currentUser;
+        refreshList();
+
+        // When user clicks an album, update info panel
+        albumList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            updateAlbumInfo();
+        });
+    }
+
+    // -------------------------
+    // REFRESH LIST
+    // -------------------------
+    @FXML
+    private void handleRefresh(ActionEvent event) {
+        refreshList();
+    }
+
+    private void refreshList() {
+        albumList.getItems().clear();
+
+        for (Album a : user.getAlbums()) {
+            albumList.getItems().add(a.getName());
+        }
+
+        updateAlbumInfo();
+    }
+
+    // -------------------------
+    // CREATE ALBUM
+    // -------------------------
+    @FXML
+    private void handleCreateAlbum(ActionEvent event) {
+        String name = newAlbumField.getText().trim();
+
+        if (name.isEmpty()) {
+            showError("Album name cannot be empty.");
+            return;
+        }
+
+        if (!user.addAlbum(name)) {
+            showError("An album with that name already exists.");
+            return;
+        }
+
+        newAlbumField.clear();
+        refreshList();
+    }
+
+    // -------------------------
+    // DELETE ALBUM
+    // -------------------------
+    @FXML
+    private void handleDeleteAlbum(ActionEvent event) {
+        String name = albumList.getSelectionModel().getSelectedItem();
+
+        if (name == null) {
+            showError("Select an album to delete.");
+            return;
+        }
+
+        user.deleteAlbum(name);
+        refreshList();
+    }
+
+    // -------------------------
+    // RENAME ALBUM
+    // -------------------------
+    @FXML
+    private void handleRenameAlbum(ActionEvent event) {
+        String oldName = albumList.getSelectionModel().getSelectedItem();
+
+        if (oldName == null) {
+            showError("Select an album to rename.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(oldName);
+        dialog.setHeaderText("Enter new album name:");
+        dialog.setContentText("Name:");
+
+        dialog.showAndWait().ifPresent(newName -> {
+            if (!user.renameAlbum(oldName, newName.trim())) {
+                showError("Could not rename album. A duplicate name may exist.");
+            }
+        });
+
+        refreshList();
+    }
+
+    // -------------------------
+    // UPDATE ALBUM INFO PANEL
+    // -------------------------
+    private void updateAlbumInfo() {
+        String name = albumList.getSelectionModel().getSelectedItem();
+        if (name == null) {
+            countLabel.setText("-");
+            startDateLabel.setText("-");
+            endDateLabel.setText("-");
+            return;
+        }
+
+        Album a = user.getAlbum(name);
+
+        countLabel.setText(String.valueOf(a.getNumPhotos()));
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        if (a.getEarliestDate() != null)
+            startDateLabel.setText(a.getEarliestDate().format(fmt));
+        else
+            startDateLabel.setText("-");
+
+        if (a.getLatestDate() != null)
+            endDateLabel.setText(a.getLatestDate().format(fmt));
+        else
+            endDateLabel.setText("-");
+    }
+
+    // -------------------------
+    // OPEN ALBUM
+    // -------------------------
+    @FXML
+    private void handleOpenAlbum(ActionEvent event) {
+        String name = albumList.getSelectionModel().getSelectedItem();
+
+        if (name == null) {
+            showError("Select an album to open.");
+            return;
+        }
+
+        // Save selected album to global variable (for next screen)
+        Session.selectedAlbum = user.getAlbum(name);
+
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/photos/view/LoginView.fxml"));
-            Parent root = loader.load();
+            FXMLLoader loader =
+                new FXMLLoader(getClass().getResource("/photos/view/PhotosView.fxml"));
+            Scene scene = new Scene(loader.load());
+            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Album: " + name);
+            stage.show();
 
-            // Get the current stage from the button that triggered the event
-            Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        } catch (Exception e) {
+            showError("Could not load album view.");
+            e.printStackTrace();
+        }
+    }
 
-            stage.setScene(new Scene(root));
+    // -------------------------
+    // LOGOUT
+    // -------------------------
+    @FXML
+    private void handleLogout(ActionEvent event) {
+        try {
+            FXMLLoader loader =
+                new FXMLLoader(getClass().getResource("/photos/view/LoginView.fxml"));
+            Scene scene = new Scene(loader.load());
+            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
             stage.setTitle("Photos Login");
             stage.show();
         } catch (Exception e) {
+            showError("Logout failed.");
             e.printStackTrace();
         }
+    }
+
+    // -------------------------
+    // ERROR DIALOG
+    // -------------------------
+    private void showError(String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
     }
 }

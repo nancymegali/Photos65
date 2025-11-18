@@ -1,84 +1,107 @@
 package photos.controller;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.TextField;
-import photos.model.*;
-
-import java.nio.file.*;
-import java.util.*;
+import javafx.stage.Stage;
+import photos.Photos;
+import photos.model.User;
+import photos.model.Store;
 
 public class LoginController {
-    @FXML private TextField usernameField;
-    @FXML private Label errorLabel;
-
-    private Map<String, User> users;
-    private Store store;
 
     @FXML
-    public void initialize() {
-        try {
-            store = new Store(Paths.get("data-store"));
-            users = store.loadAllUsers();
+    private TextField usernameField;
 
-            if (!users.containsKey("stock")) {
-                User stock = new User("stock");
-                stock.createAlbum("stock");
-                store.saveUser(stock);
-                users.put("stock", stock);
-            }
-        } catch (Exception e) {
-            errorLabel.setText("Error loading users.");
+    /**
+     * Handles login when the user clicks the Login button.
+     */
+    @FXML
+    private void handleLogin(ActionEvent event) {
+        String username = usernameField.getText().trim().toLowerCase();
+
+        if (username.isEmpty()) {
+            showError("Username cannot be empty.");
+            return;
         }
+
+        // ----------------------
+        // ADMIN LOGIN
+        // ----------------------
+        if (username.equals("admin")) {
+            loadAdminView(event);
+            return;
+        }
+
+        // ----------------------
+        // STOCK USER LOGIN
+        // ----------------------
+        if (username.equals("stock")) {
+            User stock = Photos.store.getUser("stock");
+            if (stock == null) {
+                stock = Photos.store.createUser("stock");
+                stock.addAlbum("stock");
+
+                // load your stock photos from /data
+                PhotoLoader.loadStockPhotos(stock);
+            }
+
+            Photos.currentUser = stock;
+            loadAlbumsView(event);
+            return;
+        }
+
+        // ----------------------
+        // NORMAL USER LOGIN
+        // ----------------------
+        User u = Photos.store.getUser(username);
+
+        if (u == null) {
+            // Create user on first login (this is allowed per assignment)
+            u = Photos.store.createUser(username);
+        }
+
+        Photos.currentUser = u;
+        loadAlbumsView(event);
     }
 
-    @FXML
-    private void handleLogin() {
-        String username = usernameField.getText().trim().toLowerCase();
-        if (username.isEmpty()) {
-            errorLabel.setText("Please enter a username.");
-            return;
-        }
+    // ----------------------
+    //     HELPER METHODS
+    // ----------------------
 
-        if (username.equals("admin")) {
-            // Load AdminView
-            try {
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/photos/view/AdminView.fxml"));
-                javafx.scene.Parent root = loader.load();
-                javafx.stage.Stage stage = (javafx.stage.Stage) usernameField.getScene().getWindow();
-                stage.setScene(new javafx.scene.Scene(root));
-                stage.setTitle("Admin Dashboard");
-                stage.show();
-            } catch (Exception e) {
-                errorLabel.setText("Error loading Admin view.");
-                e.printStackTrace();
-            }
-            return;
-        }
-
-        User user = users.get(username);
-        if (user == null) {
-            errorLabel.setText("User does not exist.");
-            return;
-        }
-
+    private void loadAdminView(ActionEvent event) {
         try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/photos/view/AlbumsView.fxml"));
-            javafx.scene.Parent root = loader.load();
-
-            // Pass user + store data to AlbumsController
-            photos.controller.AlbumsController albumsController = loader.getController();
-            albumsController.setUser(user);
-            albumsController.setStore(store);
-
-            javafx.stage.Stage stage = (javafx.stage.Stage) usernameField.getScene().getWindow();
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.setTitle("Albums - " + username);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/photos/view/AdminView.fxml"));
+            Scene scene = new Scene(loader.load());
+            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Admin Subsystem");
             stage.show();
         } catch (Exception e) {
-            errorLabel.setText("Error loading albums view.");
+            showError("Could not load admin view.");
             e.printStackTrace();
         }
     }
 
+    private void loadAlbumsView(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/photos/view/AlbumsView.fxml"));
+            Scene scene = new Scene(loader.load());
+            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Albums - " + Photos.currentUser.getUsername());
+            stage.show();
+        } catch (Exception e) {
+            showError("Could not load albums view.");
+            e.printStackTrace();
+        }
+    }
+
+    private void showError(String message) {
+        // You will replace this with a GUI dialog later
+        System.out.println("ERROR: " + message);
+    }
 }

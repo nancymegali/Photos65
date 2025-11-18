@@ -1,66 +1,53 @@
 package photos.model;
 
 import java.io.Serializable;
-import java.time.Instant;
-import java.util.*;
-
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Album implements Serializable {
-    private String name;                 
-    private final List<Photo> photos;    
+    private static final long serialVersionUID = 1L;
+
+    private String name;
+    private List<Photo> photos;
 
     public Album(String name) {
-        this.name = name.trim();
+        this.name = name;
         this.photos = new ArrayList<>();
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void rename(String newName) {
-        this.name = newName.trim();
-    }
-
-    public List<Photo> getPhotos() {
-        return Collections.unmodifiableList(photos);
-    }
+    public List<Photo> getPhotos() { return photos; }
 
     public boolean addPhoto(Photo p) {
-        if (photos.contains(p)) {
-            return false; 
-        }
-        photos.add(p);
-        return true;
+        if (photos.contains(p)) return false;
+        return photos.add(p);
     }
 
     public boolean removePhoto(Photo p) {
         return photos.remove(p);
     }
 
-    public int size() {
-        return photos.size();
+    public int getNumPhotos() { return photos.size(); }
+
+    public LocalDateTime getEarliestDate() {
+        return photos.stream()
+                .map(Photo::getDateTime)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
     }
 
-    public Optional<Instant> getEarliestDate() {
+    public LocalDateTime getLatestDate() {
         return photos.stream()
-                     .map(Photo::getDate)
-                     .min(Comparator.naturalOrder());
-    }
-
-    public Optional<Instant> getLatestDate() {
-        return photos.stream()
-                     .map(Photo::getDate)
-                     .max(Comparator.naturalOrder());
+                .map(Photo::getDateTime)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
     }
 
     @Override
     public String toString() {
-        String range = "";
-        if (!photos.isEmpty()) {
-            range = " [" + getEarliestDate().orElse(null) + " - " +
-                            getLatestDate().orElse(null) + "]";
-        }
-        return String.format("Album{name='%s', photos=%d%s}", name, photos.size(), range);
+        return name;
     }
 }
