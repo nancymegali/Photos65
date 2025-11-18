@@ -4,6 +4,6 @@
   ],
   "java.project.outputPath": "bin",
   "java.project.referencedLibraries": [
-    "/Users/nancymegali/javafx-sdk-25.0.1/lib/*.jar"
+    "/Users/nancymegali/javafx-sdk-21.0.9/lib/*.jar"
   ]
 }
