@@ -105,7 +105,6 @@ public class Store implements Serializable {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f))) {
             return (Store) ois.readObject();
         } catch (Exception e) {
-            // Do NOT print to console; do NOT show UI dialog here
             return new Store();
         }
     }
@@ -127,8 +126,6 @@ public class Store implements Serializable {
                 oos.writeObject(store);
             }
         } catch (Exception e) {
-            // System.out.println("ERROR saving store:");
-            // e.printStackTrace();
         }
     }
 }
