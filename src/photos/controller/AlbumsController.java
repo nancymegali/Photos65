@@ -150,13 +150,16 @@ public class AlbumsController {
             return;
         }
 
-        Session.selectedAlbum = user.getAlbum(name);
+        Album selected = user.getAlbum(name);
 
         try {
             FXMLLoader loader =
                 new FXMLLoader(getClass().getResource("/photos/view/PhotosView.fxml"));
 
             Scene scene = new Scene(loader.load());
+
+            PhotosController controller = loader.getController();
+            controller.setAlbum(selected);
 
             Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
             stage.setScene(scene);
@@ -168,6 +171,7 @@ public class AlbumsController {
             e.printStackTrace();
         }
     }
+
 
     @FXML
     private void handleLogout(ActionEvent event) {

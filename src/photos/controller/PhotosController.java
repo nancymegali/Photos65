@@ -253,9 +253,6 @@ public class PhotosController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/photos/view/AlbumsView.fxml"));
             Scene scene = new Scene(loader.load());
 
-            AlbumsController controller = loader.getController();
-            controller.initializeList();
-
             Stage stage = (Stage) ((Node)albumNameLabel).getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Albums");

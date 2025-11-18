@@ -69,6 +69,21 @@
             <Separator/>
 
             <VBox spacing="5">
+                <Label text="Album Info" style="-fx-font-size: 16px;"/>
+
+                <Label text="Photo Count:"/>
+                <Label fx:id="countLabel" text="-"/>
+
+                <Label text="Earliest Date:"/>
+                <Label fx:id="startDateLabel" text="-"/>
+
+                <Label text="Latest Date:"/>
+                <Label fx:id="endDateLabel" text="-"/>
+            </VBox>
+
+            <Separator/>
+
+            <VBox spacing="5">
                 <Label text="Copy / Move Photo:"/>
                 <Button text="Copy Photo" onAction="#handleCopyPhoto"/>
                 <Button text="Move Photo" onAction="#handleMovePhoto"/>
@@ -76,6 +91,7 @@
 
         </VBox>
     </right>
+
 
 
     <bottom>
