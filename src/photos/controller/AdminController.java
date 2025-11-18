@@ -1,11 +1,8 @@
 package photos.controller;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.*;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.stage.Stage;
@@ -15,90 +12,82 @@ import photos.model.User;
 
 public class AdminController {
 
-    @FXML
-    private ListView<String> userList;
-
-    @FXML
-    private TextField newUserField;
+    @FXML private ListView<String> userList;
+    @FXML private TextField newUserField;
 
     @FXML
     public void initialize() {
-        refreshList();
+        refreshUsers();
     }
 
-    private void refreshList() {
+    private void refreshUsers() {
         userList.getItems().clear();
 
-        for (User u : Photos.store.getAllUsers()) {
+        for (User u : Photos.store.getUsers()) {
             userList.getItems().add(u.getUsername());
         }
     }
 
- 
     @FXML
-    private void handleCreateUser(ActionEvent event) {
-        String username = newUserField.getText().trim().toLowerCase();
+    private void handleCreateUser() {
+        String name = newUserField.getText().trim().toLowerCase();
 
-        if (username.isEmpty()) {
+        if (name.isEmpty()) {
             showError("Username cannot be empty.");
             return;
         }
 
-        if (username.equals("admin")) {
-            showError("Cannot create admin user.");
+        if (name.equals("admin")) {
+            showError("Cannot create a second 'admin' user.");
             return;
         }
 
-        if (Photos.store.getUser(username) != null) {
+        if (!Photos.store.createUser(name)) {
             showError("User already exists.");
             return;
         }
 
-        Photos.store.createUser(username);
         newUserField.clear();
-        refreshList();
+        refreshUsers();
     }
 
-
     @FXML
-    private void handleDeleteUser(ActionEvent event) {
+    private void handleDeleteUser() {
         String selected = userList.getSelectionModel().getSelectedItem();
 
         if (selected == null) {
-            showError("Please select a user to delete.");
+            showError("Select a user to delete.");
             return;
         }
 
         if (selected.equals("admin")) {
-            showError("Cannot delete admin.");
+            showError("Cannot delete the admin account.");
+            return;
+        }
+
+        if (selected.equals("stock")) {
+            showError("Cannot delete the stock user.");
             return;
         }
 
         Photos.store.deleteUser(selected);
-        refreshList();
+        refreshUsers();
     }
 
-  
     @FXML
-    private void handleRefresh(ActionEvent event) {
-        refreshList();
-    }
-
-    
-    @FXML
-    private void handleLogout(ActionEvent event) {
+    private void handleLogout(javafx.event.ActionEvent event) {
         try {
             FXMLLoader loader =
                 new FXMLLoader(getClass().getResource("/photos/view/LoginView.fxml"));
-
             Scene scene = new Scene(loader.load());
+
             Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Photos Login");
             stage.show();
 
         } catch (Exception e) {
-            showError("Unable to load login screen.");
+            showError("Logout failed.");
             e.printStackTrace();
         }
     }

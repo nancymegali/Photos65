@@ -1,298 +1,276 @@
 package photos.controller;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
-import javafx.scene.layout.TilePane;
-import javafx.stage.FileChooser;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
-
 import photos.Photos;
 import photos.model.*;
+import photos.util.PhotoLoader;
 
 import java.io.File;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class PhotosController {
 
-    @FXML private TilePane thumbnailPane;
-    @FXML private ImageView previewImage;
-    @FXML private Label captionLabel;
-    @FXML private Label dateLabel;
     @FXML private Label albumNameLabel;
-    @FXML private ListView<String> tagList;
+
+    @FXML private ListView<Photo> photoList;
+    @FXML private ImageView photoView;
+
+    @FXML private TextField captionField;
+    @FXML private ListView<Tag> tagList;
+
+    @FXML private Label countLabel;
+    @FXML private Label startDateLabel;
+    @FXML private Label endDateLabel;
 
     private Album album;
-    private List<Photo> photos;
-    private int currentIndex = -1;
+    private int index = -1;
 
-    @FXML
-    public void initialize() {
-        album = Session.selectedAlbum;
+    /** Called by AlbumsController after loading the view */
+    public void setAlbum(Album album) {
+        this.album = album;
         albumNameLabel.setText(album.getName());
 
-        photos = album.getPhotos();
+        refreshPhotoList();
+    }
 
-        loadThumbnails();
+    /** Reload ListView contents */
+    private void refreshPhotoList() {
+        photoList.getItems().setAll(album.getPhotos());
 
-        if (!photos.isEmpty()) {
-            selectPhoto(0);
+        updateAlbumInfo();
+
+        if (!album.getPhotos().isEmpty()) {
+            index = 0;
+            photoList.getSelectionModel().select(0);
+            loadPhoto(0);
+        } else {
+            index = -1;
+            clearPhotoDisplay();
         }
     }
 
-
-    private void loadThumbnails() {
-        thumbnailPane.getChildren().clear();
-
-        for (int i = 0; i < photos.size(); i++) {
-            Photo p = photos.get(i);
-            ImageView thumb = makeThumbnail(p, i);
-            thumbnailPane.getChildren().add(thumb);
-        }
-    }
-
-    private ImageView makeThumbnail(Photo p, int index) {
-        Image img = new Image(new File(p.getFilePath()).toURI().toString(), 120, 0, true, true);
-
-        ImageView thumb = new ImageView(img);
-        thumb.setFitWidth(120);
-        thumb.setPreserveRatio(true);
-
-        thumb.setOnMouseClicked(e -> selectPhoto(index));
-
-        return thumb;
-    }
-
- 
-    private void selectPhoto(int index) {
-        currentIndex = index;
-
-        Photo p = photos.get(index);
-
-        previewImage.setImage(new Image(new File(p.getFilePath()).toURI().toString()));
-
-        captionLabel.setText("Caption: " + p.getCaption());
-
-        dateLabel.setText("Date: " +
-                p.getDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-
+    /** Clears preview area when album empty */
+    private void clearPhotoDisplay() {
+        photoView.setImage(null);
+        captionField.setText("");
         tagList.getItems().clear();
-        for (Tag t : p.getTags()) {
-            tagList.getItems().add(t.toString());
+    }
+
+    /** Updates right side album summary */
+    private void updateAlbumInfo() {
+        countLabel.setText("" + album.getNumPhotos());
+
+        var s = album.getEarliestDate();
+        var e = album.getLatestDate();
+
+        startDateLabel.setText(s == null ? "-" : s.toString().replace('T',' '));
+        endDateLabel.setText(e == null ? "-" : e.toString().replace('T',' '));
+    }
+
+    /** Loads selected photo into the large ImageView */
+    @FXML
+    private void handleSelectPhoto() {
+        int i = photoList.getSelectionModel().getSelectedIndex();
+        if (i >= 0) {
+            index = i;
+            loadPhoto(i);
         }
     }
 
-    @FXML
-    private void handleNext() {
-        if (photos.isEmpty()) return;
+    /** Load photo by index */
+    private void loadPhoto(int i) {
+        if (i < 0 || i >= album.getPhotos().size())
+            return;
 
-        currentIndex = (currentIndex + 1) % photos.size();
-        selectPhoto(currentIndex);
+        Photo p = album.getPhotos().get(i);
+
+        File f = new File(p.getFilePath());
+        if (f.exists()) {
+            photoView.setImage(new Image(f.toURI().toString()));
+        } else {
+            photoView.setImage(null);
+        }
+
+        captionField.setText(p.getCaption());
+        tagList.getItems().setAll(p.getTags());
     }
 
+    /** Save caption */
     @FXML
-    private void handlePrev() {
-        if (photos.isEmpty()) return;
+    private void handleSaveCaption() {
+        if (index < 0) return;
+        Photo p = album.getPhotos().get(index);
 
-        currentIndex = (currentIndex - 1 + photos.size()) % photos.size();
-        selectPhoto(currentIndex);
+        p.setCaption(captionField.getText().trim());
+        photoList.refresh();
     }
 
-
+    /** Add photo (using file chooser) */
     @FXML
     private void handleAddPhoto() {
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Select Image");
-        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.jpg", "*.png"));
-
-        File file = fc.showOpenDialog(null);
-
-        if (file == null) return;
-
-        Photo newPhoto = new Photo(file.getAbsolutePath());
-
-        if (!album.addPhoto(newPhoto)) {
-            showError("Photo already exists in this album.");
-            return;
-        }
-
-        loadThumbnails();
-        photos = album.getPhotos();
-        selectPhoto(photos.size() - 1);
-    }
-
-    @FXML
-    private void handleRemovePhoto() {
-        if (currentIndex < 0) return;
-
-        album.removePhoto(photos.get(currentIndex));
-        photos = album.getPhotos();
-
-        loadThumbnails();
-
-        if (!photos.isEmpty()) selectPhoto(0);
-        else clearPreview();
-    }
-
-    private void clearPreview() {
-        previewImage.setImage(null);
-        captionLabel.setText("");
-        dateLabel.setText("");
-        tagList.getItems().clear();
-        currentIndex = -1;
-    }
-
-
-    @FXML
-    private void handleCaption() {
-        if (currentIndex < 0) return;
-
-        TextInputDialog dialog = new TextInputDialog(photos.get(currentIndex).getCaption());
-        dialog.setHeaderText("Enter new caption:");
-        dialog.showAndWait().ifPresent(text -> {
-            photos.get(currentIndex).setCaption(text);
-            selectPhoto(currentIndex);
-        });
-    }
-
- 
-    @FXML
-    private void handleAddTag() {
-        if (currentIndex < 0) return;
-
-        TagDialog dialog = new TagDialog();
-        Tag result = dialog.showAndGet();
-
-        if (result != null) {
-            Photo p = photos.get(currentIndex);
-            if (!p.addTag(result.getName(), result.getValue())) {
-                showError("Duplicate tag.");
-            }
-            selectPhoto(currentIndex);
-        }
-    }
-
-    @FXML
-    private void handleDeleteTag() {
-        if (currentIndex < 0) return;
-        String selected = tagList.getSelectionModel().getSelectedItem();
-        if (selected == null) return;
-
-        String[] parts = selected.split("=");
-        photos.get(currentIndex).removeTag(parts[0], parts[1]);
-        selectPhoto(currentIndex);
-    }
-
- 
-    @FXML
-    private void handleCopyPhoto() {
-        handlePhotoTransfer(false); 
-    }
-
-    @FXML
-    private void handleMovePhoto() {
-        handlePhotoTransfer(true); 
-    }
-
-    private void handlePhotoTransfer(boolean move) {
-        if (currentIndex < 0) return;
-
-        List<String> albumNames = new ArrayList<>();
-        for (Album a : Photos.currentUser.getAlbums()) {
-            if (!a.getName().equals(album.getName()))
-                albumNames.add(a.getName());
-        }
-
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(albumNames.get(0), albumNames);
-        dialog.setHeaderText(move ? "Move photo to:" : "Copy photo to:");
-
-        dialog.showAndWait().ifPresent(targetName -> {
-            Album target = Photos.currentUser.getAlbum(targetName);
-            Photo selected = photos.get(currentIndex);
-
-            if (move) {
-                album.removePhoto(selected);
-                target.addPhoto(selected);
-                photos = album.getPhotos();
-                loadThumbnails();
-                if (!photos.isEmpty()) selectPhoto(0);
-                else clearPreview();
-            } else {
-                target.addPhoto(selected);
-            }
-        });
-    }
-
-
-    @FXML
-    private void handleSearch() {
         try {
-            FXMLLoader loader =
-                new FXMLLoader(getClass().getResource("/photos/view/SearchDialog.fxml"));
-            DialogPane pane = loader.load();
+            Photo p = PhotoLoader.choosePhoto(photoList.getScene().getWindow());
 
-            SearchDialogController controller = loader.getController();
+            if (p == null) return;
 
-            Dialog<ButtonType> dialog = new Dialog<>();
-            dialog.setDialogPane(pane);
-            dialog.setTitle("Search Photos");
-
-            var result = dialog.showAndWait();
-
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-
-                List<Photo> photos = controller.processSearch();
-
-                if (photos != null && !photos.isEmpty()) {
-                    createAlbumFromResults(photos);
-                }
+            if (!album.addPhoto(p)) {
+                showError("Photo already exists in album.");
+                return;
             }
+
+            refreshPhotoList();
+            updateAlbumInfo();
 
         } catch (Exception e) {
-            showError("Search failed.");
+            showError("Error adding photo.");
             e.printStackTrace();
         }
     }
 
+    /** Delete selected photo */
+    @FXML
+    private void handleDeletePhoto() {
+        if (index < 0) return;
 
-    private void createAlbumFromResults(List<Photo> results) {
-        TextInputDialog dialog = new TextInputDialog("SearchResults");
-        dialog.setHeaderText("Enter name for new album:");
-        dialog.showAndWait().ifPresent(name -> {
-            if (!Photos.currentUser.addAlbum(name)) {
-                showError("Album name already exists.");
-                return;
-            }
+        Photo p = album.getPhotos().get(index);
+        album.removePhoto(p);
 
-            Album newAlbum = Photos.currentUser.getAlbum(name);
-            for (Photo p : results) newAlbum.addPhoto(p);
-        });
+        refreshPhotoList();
     }
 
+    /** Slideshow Previous */
     @FXML
-    private void handleBack(ActionEvent event) {
+    private void handlePrev() {
+        if (album.getPhotos().isEmpty()) return;
+
+        index = (index - 1 + album.getPhotos().size()) % album.getPhotos().size();
+        photoList.getSelectionModel().select(index);
+        loadPhoto(index);
+    }
+
+    /** Slideshow Next */
+    @FXML
+    private void handleNext() {
+        if (album.getPhotos().isEmpty()) return;
+
+        index = (index + 1) % album.getPhotos().size();
+        photoList.getSelectionModel().select(index);
+        loadPhoto(index);
+    }
+
+    /** ADD tag */
+    @FXML
+    private void handleAddTag() {
+        if (index < 0) return;
+
+        var dialog = new TagDialog();
+        Tag result = dialog.showAndGet();
+
+        if (result != null) {
+            Photo p = album.getPhotos().get(index);
+            if (!p.addTag(result.getName(), result.getValue())) {
+                showError("Duplicate tag.");
+                return;
+            }
+            tagList.getItems().setAll(p.getTags());
+        }
+    }
+
+    /** DELETE tag */
+    @FXML
+    private void handleDeleteTag() {
+        if (index < 0) return;
+
+        Tag t = tagList.getSelectionModel().getSelectedItem();
+        if (t == null) return;
+
+        Photo p = album.getPhotos().get(index);
+        p.removeTag(t.getName(), t.getValue());
+
+        tagList.getItems().setAll(p.getTags());
+    }
+
+    /** Copy Photo to another album */
+    @FXML
+    private void handleCopyPhoto() {
+        handleCopyOrMove(false);
+    }
+
+    /** Move Photo to another album */
+    @FXML
+    private void handleMovePhoto() {
+        handleCopyOrMove(true);
+    }
+
+    private void handleCopyOrMove(boolean move) {
+        if (index < 0) return;
+
+        List<String> choices = new ArrayList<>();
+        for (Album a : Photos.currentUser.getAlbums()) {
+            if (!a.getName().equals(album.getName()))
+                choices.add(a.getName());
+        }
+
+        if (choices.isEmpty()) {
+            showError("No other albums available.");
+            return;
+        }
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(choices.get(0), choices);
+        dialog.setTitle(move ? "Move Photo" : "Copy Photo");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Select target album:");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) return;
+
+        String targetName = result.get();
+        Album target = Photos.currentUser.getAlbum(targetName);
+
+        Photo selected = album.getPhotos().get(index);
+
+        if (!target.addPhoto(selected)) {
+            showError("Photo already exists in target album.");
+            return;
+        }
+
+        if (move) {
+            album.removePhoto(selected);
+            refreshPhotoList();
+        }
+    }
+
+    /** Return to album list screen */
+    @FXML
+    private void handleBack() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/photos/view/AlbumsView.fxml"));
             Scene scene = new Scene(loader.load());
-            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+
+            AlbumsController controller = loader.getController();
+            controller.initializeList();
+
+            Stage stage = (Stage) ((Node)albumNameLabel).getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("Albums");
             stage.show();
+
         } catch (Exception e) {
             showError("Could not return to albums.");
             e.printStackTrace();
         }
     }
 
-
+    /** Helper error dialog */
     private void showError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText(null);
         alert.setContentText(msg);
         alert.showAndWait();
     }

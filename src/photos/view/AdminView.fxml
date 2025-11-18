@@ -6,42 +6,41 @@
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="photos.controller.AdminController">
+            fx:controller="photos.controller.AdminController"
+            prefWidth="600" prefHeight="400">
 
     <top>
-        <Label text="Admin Panel — Manage Users"
-               style="-fx-font-size: 20px; -fx-padding: 10;" />
+        <Label text="Admin Panel"
+               style="-fx-font-size: 24px; -fx-padding: 15;"
+               BorderPane.alignment="CENTER" />
     </top>
 
-    <center>
-        <VBox spacing="10" alignment="CENTER">
-            <Label text="Existing Users:" style="-fx-font-size: 14px;" />
-
-            <ListView fx:id="userList" prefHeight="300" prefWidth="250" />
-
-            <HBox spacing="10" alignment="CENTER">
-                <Button text="Delete User" onAction="#handleDeleteUser" />
-                <Button text="Refresh" onAction="#handleRefresh" />
-            </HBox>
+    <left>
+        <VBox spacing="10" style="-fx-padding: 20;" prefWidth="250">
+            <Label text="Users:" style="-fx-font-size: 16px;" />
+            <ListView fx:id="userList" prefHeight="300" />
+            <Button text="Delete User" onAction="#handleDeleteUser" />
         </VBox>
-    </center>
+    </left>
 
-    <right>
-        <VBox spacing="10" alignment="TOP_CENTER" style="-fx-padding: 20;">
-            <Label text="Create User" style="-fx-font-size: 16px;" />
+    <center>
+        <VBox spacing="20" alignment="TOP_CENTER" style="-fx-padding: 20;">
+
+            <Label text="Create New User:" style="-fx-font-size: 16px;" />
 
             <TextField fx:id="newUserField"
                        promptText="Enter username"
-                       prefWidth="150" />
+                       prefWidth="200" />
 
-            <Button text="Create" prefWidth="100"
+            <Button text="Create User" 
+                    prefWidth="140"
                     onAction="#handleCreateUser" />
+
         </VBox>
-    </right>
+    </center>
 
     <bottom>
-        <HBox alignment="CENTER_RIGHT"
-              style="-fx-padding: 10;">
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 10;">
             <Button text="Logout" onAction="#handleLogout" />
         </HBox>
     </bottom>

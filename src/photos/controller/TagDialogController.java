@@ -9,13 +9,15 @@ public class TagDialogController {
     @FXML private TextField nameField;
     @FXML private TextField valueField;
 
-    public Tag getTag() {
+    public Tag buildTag() {
         String name = nameField.getText().trim();
         String value = valueField.getText().trim();
 
-        if (name.isEmpty() || value.isEmpty())
+        if (name.isEmpty() || value.isEmpty()) {
             return null;
+        }
 
         return new Tag(name, value);
     }
+
 }

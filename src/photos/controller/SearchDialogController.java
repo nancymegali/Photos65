@@ -22,14 +22,12 @@ public class SearchDialogController {
     public List<Photo> processSearch() {
         List<Photo> output = new ArrayList<>();
 
-        // Date search
         LocalDate s = startDate.getValue();
         LocalDate e = endDate.getValue();
         if (s != null && e != null) {
             output.addAll(SearchUtils.searchByDateRange(s, e));
         }
 
-        // Tag search
         String n1 = tagName1.getText().trim();
         String v1 = tagValue1.getText().trim();
 

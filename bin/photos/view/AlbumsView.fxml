@@ -25,11 +25,6 @@
                 <Button text="Open" onAction="#handleOpenAlbum" />
                 <Button text="Delete" onAction="#handleDeleteAlbum" />
             </HBox>
-
-            <HBox spacing="10">
-                <Button text="Rename" onAction="#handleRenameAlbum" />
-                <Button text="Refresh" onAction="#handleRefresh" />
-            </HBox>
         </VBox>
     </left>
 

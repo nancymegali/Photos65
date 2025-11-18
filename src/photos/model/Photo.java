@@ -45,6 +45,20 @@ public class Photo implements Serializable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Photo)) return false;
+        Photo other = (Photo) o;
+        return this.filePath.equalsIgnoreCase(other.filePath);
+    }
+
+    @Override
+    public int hashCode() {
+        return filePath.toLowerCase().hashCode();
+    }
+
+
+    @Override
     public String toString() {
         return caption.isEmpty() ? filePath : caption;
     }
